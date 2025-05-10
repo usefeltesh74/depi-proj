@@ -22,9 +22,11 @@ def load_cleaned_books(path = 'data/processed/books_cleaned.csv'):
     return pd.read_csv(path)
 
 def load_cleaned_users(path = 'data/processed/users_cleaned.csv'):
+    """Load users data from CSV, always returning fresh data"""
     return pd.read_csv(path)
 
 def load_cleaned_ratings(path = 'data/processed/ratings_cleaned.csv'):
+    """Load ratings data from CSV, always returning fresh data"""
     return pd.read_csv(path)
 
 def load_user_item_matrix(path = 'data/processed/user_item.npz'):

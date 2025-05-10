@@ -6,7 +6,8 @@ from PIL import Image
 from io import BytesIO
 import os
 from datetime import datetime
-from app_helpers import add_new_user, add_rating, users_df, ratings_df
+from app_helpers import add_new_user, add_rating
+from utils.data_loader import load_cleaned_users, load_cleaned_ratings
 
 # Set page config
 st.set_page_config(
@@ -56,7 +57,7 @@ def display_book(book, index):
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
-                    height: 320px;
+                    height: 350px;
                 }
                 .book-image-vertical img {
                     height: 100%;
@@ -72,6 +73,7 @@ def display_book(book, index):
         return rating
 
 def authenticate_user(username, password):
+    users_df = load_cleaned_users()
     user = users_df[
         (users_df['User-Name'] == username) & 
         (users_df['Password'] == password)
@@ -127,15 +129,31 @@ def main():
                 if reg_username.strip() and reg_password.strip():
                     if len(reg_password) < 4:
                         st.error("Password must be at least 4 characters long")
-                    elif reg_username in users_df["User-Name"].values:
+                    elif reg_username in load_cleaned_users()["User-Name"].values:
                         st.error("Username already exists")
                     else:
+                        users_df = load_cleaned_users()
                         user_id = users_df.iloc[-1,0] + 1
-                        add_new_user(reg_username.strip(), reg_password.strip(), user_id, location.strip(), age)
-                        st.session_state.username = reg_username.strip()
-                        st.session_state.user_id = user_id
-                        st.success(f"Welcome, {st.session_state.username}! Your user ID is {user_id}")
-                        st.rerun()
+                        if add_new_user(reg_username.strip(), reg_password.strip(), user_id, location.strip(), age):
+                            st.session_state.username = reg_username.strip()
+                            st.session_state.user_id = user_id
+                            st.success(f"Welcome, {st.session_state.username}! Your user ID is {user_id}")
+                            
+                            print("\n=== DEBUG INFO ===")
+                            print("Current users in database:")
+                            users_df = load_cleaned_users()
+                            print(users_df)
+                            print("\nUsers dataframe tail:")
+                            print(users_df.tail())
+                            print("\nRatings dataframe info:")
+                            ratings_df = load_cleaned_ratings()
+                            print("Shape:", ratings_df.shape)
+                            print("Columns:", ratings_df.columns.tolist())
+                            print("\nLast 4 ratings:")
+                            print(ratings_df.tail().to_string())
+                            print("\n==================\n")
+                            
+                            st.rerun()
                 else:
                     st.error("Please enter both username and password")
         st.stop()
@@ -173,7 +191,9 @@ def main():
         success = True
         for r in ratings:
             try:
-                add_rating(st.session_state.user_id, r['ISBN'], r['Rating'])
+                if not add_rating(st.session_state.user_id, r['ISBN'], r['Rating']):
+                    st.error(f"Error saving rating for {r['Title']}")
+                    success = False
             except Exception as e:
                 st.error(f"Error saving rating for {r['Title']}: {str(e)}")
                 success = False
@@ -183,6 +203,20 @@ def main():
             st.write("Your ratings:")
             for r in ratings:
                 st.write(f"{r['Title']}: {r['Rating']}/10")
+            
+            print("\n=== DEBUG INFO ===")
+            print("Current users in database:")
+            users_df = load_cleaned_users()
+            print(users_df)
+            print("\nUsers dataframe tail:")
+            print(users_df.tail())
+            print("\nRatings dataframe info:")
+            ratings_df = load_cleaned_ratings()
+            print("Shape:", ratings_df.shape)
+            print("Columns:", ratings_df.columns.tolist())
+            print("\nLast 4 ratings:")
+            print(ratings_df.tail().to_string())
+            print("\n==================\n")
             
             # Option to get new books
             if st.button("Rate More Books"):
