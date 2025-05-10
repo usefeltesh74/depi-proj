@@ -6,10 +6,10 @@ from utils.data_loader import *
 users_df = load_cleaned_users()
 ratings_df = load_cleaned_ratings()
 
-def add_new_user(user_name,password,
+def add_new_user(user_name, password,
                  user_id = users_df.iloc[-1,0] + 1,
                  loc = "Unknown", Age = None,
-                 path = r"..\data\processed\users_cleaned.csv",
+                 path = 'data/processed/users_cleaned.csv',
                  input_df = users_df):
 
     """
@@ -24,8 +24,8 @@ def add_new_user(user_name,password,
         print("Password must be at least 4 characters")
         return
 
-    new_user_row = [user_id,user_name,loc,Age,password]
-    with open(path, "a",newline='') as f:
+    new_user_row = [user_id, user_name, loc, Age, password]
+    with open(path, "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow(new_user_row)
         print("User added successfully")
@@ -33,10 +33,10 @@ def add_new_user(user_name,password,
 
 
 
-def add_rating(user_id : int,
-               isbn : str,
-               rating : int,
-               path = r"..\data\processed\ratings_cleaned.csv"):
+def add_rating(user_id: int,
+               isbn: str,
+               rating: int,
+               path = 'data/processed/ratings_cleaned.csv'):
 
     """
     Appending a new rating row to ratings_cleaned.csv
@@ -48,9 +48,9 @@ def add_rating(user_id : int,
         print("User already rated that book")
         return
 
-    with open(path, "a",newline='') as f:
+    with open(path, "a", newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([int(user_id),str(isbn),float(rating)])
+        writer.writerow([int(user_id), str(isbn), float(rating)])
         print("Rating added successfully")
 
 
